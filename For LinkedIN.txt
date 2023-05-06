@@ -1,2 +1,0 @@
-Please refer .......... for a AWS-ETL Data pipeline that processes data from Front Office to the datawarehouse.
-The AWS services covered here are API Gateway, Lambda, Kinesis data firehose, kinesis delivery stream, DynamoDB, Redshift, Glue (crawler, jobs workflow), Athena, EventBridge Rule and Redshift. The "Code" folder has the code for all the services used. The main folder has the notes, important points to be taken care of. How data validation is performed for the pipeline and how potential duplicates are handled is also mentioned in the main folder.
