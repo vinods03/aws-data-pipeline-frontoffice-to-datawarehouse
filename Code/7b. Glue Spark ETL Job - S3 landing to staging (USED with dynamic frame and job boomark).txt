@@ -128,10 +128,10 @@ def core():
            ("product_name", "string", "product_name", "string"),
            ("product_price", "string", "product_price", "string"),
            ("product_qty", "string", "product_qty", "string"),
-           ("order_purchase_year", "string", "order_purchase_year", "string"),
-           ("order_purchase_month", "string", "order_purchase_month", "string"),
-           ("order_purchase_day", "string", "order_purchase_day", "string"),
-           ("order_purchase_hour", "string", "order_purchase_hour", "string"),
+           ("order_purchase_year", "int", "order_purchase_year", "int"),
+           ("order_purchase_month", "int", "order_purchase_month", "int"),
+           ("order_purchase_day", "int", "order_purchase_day", "int"),
+           ("order_purchase_hour", "int", "order_purchase_hour", "int"),
            ("order_value", "bigint", "order_value", "long"),
            ("order_purchase_timestamp", "string", "order_purchase_timestamp", "string")
             ], 
@@ -159,24 +159,37 @@ def core():
            ("product_qty", "string", "product_qty", "string"),
            ("order_value", "bigint", "order_value", "long"),
            ("order_purchase_timestamp", "string", "order_purchase_timestamp", "string"),
-           ("order_purchase_year", "string", "order_purchase_year", "string"),
-           ("order_purchase_month", "string", "order_purchase_month", "string"),
-           ("order_purchase_day", "string", "order_purchase_day", "string"),
-           ("order_purchase_hour", "string", "order_purchase_hour", "string")
+           ("order_purchase_year", "int", "order_purchase_year", "int"),
+           ("order_purchase_month", "int", "order_purchase_month", "int"),
+           ("order_purchase_day", "int", "order_purchase_day", "int"),
+           ("order_purchase_hour", "int", "order_purchase_hour", "int")
         ], 
          transformation_ctx="final_df_dyn_df_trnsf_ctx"
         )
         
-    new_final_df = DynamicFrame.toDF(final_df_dyn_df_trnsf_ctx)
+    # new_final_df = DynamicFrame.toDF(final_df_dyn_df_trnsf_ctx)
 
     print('****************************************** write the transformed data *********************************************')
-    write(new_final_df, tgt_file_format, tgt_bucket, 'order_purchase_year','order_purchase_month','order_purchase_day', 'order_purchase_hour')
+    # write(new_final_df, tgt_file_format, tgt_bucket, 'order_purchase_year','order_purchase_month','order_purchase_day', 'order_purchase_hour')
+    
+    # Script generated for node S3 bucket
+    S3bucket_node3 = glueContext.write_dynamic_frame.from_options(
+    frame=final_df_dyn_df_trnsf_ctx,
+    connection_type="s3",
+    format="glueparquet",
+    connection_options={
+        "path": "s3://vinod-streaming-project-staging-bucket",
+        "partitionKeys": ["order_purchase_year","order_purchase_month","order_purchase_day","order_purchase_hour"],
+    },
+    transformation_ctx="S3bucket_node3",
+)
     
 if __name__ == '__main__':
     # appName = sys.argv[1]
     # tgt_file_format = sys.argv[2]
     # tgt_bucket = sys.argv[3]
     # core(appName, tgt_file_format, tgt_bucket)
+    job.init(args['JOB_NAME'], args)
     core()
     
 job.commit()
