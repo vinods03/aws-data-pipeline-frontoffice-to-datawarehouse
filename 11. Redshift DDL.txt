@@ -1,0 +1,91 @@
+create schema ecommerce_staging;
+
+create schema ecommerce;
+
+---- Staging Table
+
+create TABLE ecommerce_staging.orders (
+order_id VARCHAR(100) , 
+customer_id VARCHAR(100) , 
+seller_id VARCHAR(100),
+product_code VARCHAR(100),
+product_name VARCHAR(100),
+product_price INT,
+product_qty INT,
+order_value INT,
+order_purchase_timestamp VARCHAR(100)
+);
+
+
+Note 1: Got the error: Spectrum Scan Error code: 15007 context when product_Price, product_qty, order_value were defined as VARCHAR(100) columns in the staging table.
+Note 2: The IAM Role assciated with the COPY command must be the same as the IAM role associated with the cluster.
+
+-- TEMP table
+
+create TABLE ecommerce.temp_orders (
+order_id VARCHAR(100) , 
+customer_name VARCHAR(100) , 
+customer_address VARCHAR(100) , 
+seller_name VARCHAR(100),
+seller_address VARCHAR(100),
+product_code VARCHAR(100),
+product_name VARCHAR(100),
+product_price INT,
+product_qty INT,
+order_value INT,
+order_purchase_timestamp VARCHAR(100)
+);
+
+-- FINAL table
+
+create TABLE ecommerce.orders (
+order_id VARCHAR(100) , 
+customer_name VARCHAR(100) , 
+customer_address VARCHAR(100) , 
+seller_name VARCHAR(100),
+seller_address VARCHAR(100),
+product_code VARCHAR(100),
+product_name VARCHAR(100),
+product_price INT,
+product_qty INT,
+order_value INT,
+order_purchase_timestamp VARCHAR(100),
+dwh_create_timestamp TIMESTAMP,
+dwh_update_timestamp TIMESTAMP
+);
+
+-- CUSTOMER dimension table
+
+create TABLE ecommerce.customers (
+customer_id VARCHAR(100) , 
+customer_name VARCHAR(100) ,
+customer_address VARCHAR(100)
+);
+
+insert into ecommerce.customers values ('c100','abc','chennai');
+insert into ecommerce.customers values ('c101','def','pune');
+insert into ecommerce.customers values ('c102','ghi','bengaluru');
+insert into ecommerce.customers values ('c103','jkl','mumbai');
+insert into ecommerce.customers values ('c104','mno','delhi');
+insert into ecommerce.customers values ('c105','pqr','hyderabad');
+insert into ecommerce.customers values ('c106','stu','jaipur');
+insert into ecommerce.customers values ('c107','vwx','indore');
+
+-- SELLER dimension table
+
+create TABLE ecommerce.sellers (
+seller_id VARCHAR(100) , 
+seller_name VARCHAR(100) ,
+seller_address VARCHAR(100)
+);
+
+insert into ecommerce.sellers values ('s100','aaa','gurgaon');
+insert into ecommerce.sellers values ('s101','bbb','gurgaon');
+insert into ecommerce.sellers values ('s102','ccc','gurgaon');
+insert into ecommerce.sellers values ('s103','ddd','noida');
+insert into ecommerce.sellers values ('s104','eee','noida');
+insert into ecommerce.sellers values ('s105','fff','noida');
+insert into ecommerce.sellers values ('s106','ggg','kolkata');
+insert into ecommerce.sellers values ('s107','hhh','kolkata');
+
+commit;
