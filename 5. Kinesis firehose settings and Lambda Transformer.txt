@@ -1,0 +1,41 @@
+We create a kinesis delivery stream with source as the kinesis data stream created earlier. This delivery stream will write the data into an S3 bucket (landing area).
+
+The delivery stream will have Dynamic Partitioning enabled.
+This is because, without this, multiple orders were getting clubbed into a total of 1 or 2 files in the S3 bucket, which is finee, but the orders were all clubbed together.
+i.e. when you run a Glue Crawler and try to access the data from Athena, we were able to read just 1 record from each file even though each might have 20 records (based on the batch size used for publishing into the kinesis data stream)
+
+Once you enable Dynamic Partitioning, the S3 bucket prefix pattern expection will change -> you cannot just say "orders" anymore.
+I gave the S3 bucket prefix as orders/order_id_!{partitionKeyFromQuery:order_id}
+"Inline parsing for JSON" was enabled and the Dynamic Partitioning key was set as order_id with JQ expression as .order_id. 
+Note that, only when the inline parsing is enabled with JQ expression, orders/order_id_!{partitionKeyFromQuery:order_id} expression will work.
+Without inline parsing for json enabled, a different syntax needs to be followed for the S3 bucket prefix.
+
+Also, "Multi-record deaggregation" was disabled.
+"New line delimiter" was disabled.
+
+We set the buffer size as 128 mebibyte (A mebibyte equals 220 or 1,048,576 bytes) and buffer interval as 300 seconds.
+Firehose will wait for 5 minutes before writing to S3. If 128 mebibyte is reached before 5 minutes, firehose will start writing before 5 minutes.
+
+Note that, based on the dynamic partitioning set above, each order is going to be written into a separate file.
+
+
+****************
+
+
+We have also enabled transformation on the data in firehose (under "Transform source records with AWS Lambda").
+How this works now is Kinesis data stream -> firehose -> lambda transformation -> firehose -> S3.
+We need to provide the name of the lambda function that will perform the transformation and the buffer size / buffer limit.
+We set the buffer size as 1 MB and buffer interval as 60 seconds, which means the firehose will wait for 60 seconds or till 1 MB of data is available, before invoking the lambda.
+So, basically the flow is like this:
+Kinesis data stream -> firehose -> 60 seconds -> lambda transformation -> firehose -> 60 seconds -> S3.
+The lambda function used for transformation is similar to the ones used for consumption. Print out the event. Then extract the data. Decoding the data would be needed because data is sent in encoded form to kinesis data stream and the data flows in encoded form to firehose and you would need to decode the data to transform it in whatever way you need. 
+The transformation we are doing is, finding out the order value of each order and appending it as a new column.
+Then encode it back and send it in a particular format back to the firehose, which will write it to the S3 bucket specified.
+
+So, at this point, DynamoDB which is written to from Kinesis data stream -> lambda consumer will have the order_value column.
+S3, which is written to from Kinesis data stream -> firehose -> lambda -> firehose -> s3 will also have the order_value column.
+The difference between data in S3 and the data in DynamoDB is that, in S3, the products in an order and all product attributes are stored as an array in a single column whereas, in dynamodb, each product and product attribute is stored in a separate column.
+
+The lambda transformer code is also available in the "Code" folder.
+
+

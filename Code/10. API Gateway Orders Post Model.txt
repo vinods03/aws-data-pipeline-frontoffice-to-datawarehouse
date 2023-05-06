@@ -1,0 +1,37 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Notes Validator Model",
+    "type": "object",
+    "properties": {
+        "customer_id": {
+            "type": "string"
+        },
+        "seller_id": {
+             "type": "string"
+         },
+         "products": {
+             "type": "array",
+             "items": {
+                 "type": "object",
+                 "properties": {
+                     "product_code": {
+                        "type": "string"
+                        },
+                     "product_name": {
+                       "type": "string"
+                       },
+                     "product_price": {
+                       "type": "number"
+                       },
+                     "product_qty": {
+                       "type": "number"
+                     }
+                 },
+                 "required": ["product_code", "product_name", "product_price", "product_qty"]
+             }
+         }
+    
+    },
+    "required": ["customer_id", "seller_id", "products"]
+}
+

@@ -1,0 +1,8 @@
+#aws #etl #datapipeline #dataengineering #spark #python
+
+Below is a data pipeline that processes data from the Front Office all the way to the datawarehouse.
+Please refer ............... for the code.
+This pipeline makes use of many important aws services -> API Gateway, Lambda, Kinesis data stream, Kinesis delivery stream, S3, DynamoDB, EventBridge, SQS, Glue Crawler, Glue Python Shell job, Glue Spark ETL job, Glue Spark ETL job with bookmark enabled, Athena and Redshift.
+
+Apart from booking an order, we can retrieve an order and update an order as well in this data pipeline.
+As always, please DM me with your comments and suggestions.

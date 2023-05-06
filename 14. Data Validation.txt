@@ -1,0 +1,45 @@
+Attribute check:
+
+Randomly check few records to see if the correct values are populated in the various columns.
+In Redshift, verify the columns derived from dimension tables (customer / seller) are populated correctly.
+Verify the correct timestamp is populated in dwh_create_timestamp column.
+The difference between dwh_create_timestamp and order_purchase_timestamp is teh time taken to process a record from FO to the datawarehouse.
+
+Athena:
+SELECT * FROM "ecommerce-database"."vinod_streaming_project_staging_bucket";
+
+Redshift:
+select * from ecommerce.orders;
+
+-----------------------------------------
+
+Count check:
+
+The count in S3 Staging area must be equal to the count in Redshift final table:
+
+Athena:
+SELECT count(*) FROM "ecommerce-database"."vinod_streaming_project_staging_bucket";
+
+Redshift:
+select count(*) from ecommerce.orders;
+
+-------------------------------------
+
+Duplicate check:
+
+Duplicate records must not exist in both S3 staging area as well as Redshift.
+Below queries must not return any data:
+
+Athena:
+select order_id, product_code, count(*) from "ecommerce-database"."vinod_streaming_project_staging_bucket"
+group by order_id, product_code
+having count(*) > 1;
+
+Redshift:
+select order_id, product_code, count(*) from ecommerce.orders
+group by order_id, product_code
+having count(*) > 1
+
+
+
+

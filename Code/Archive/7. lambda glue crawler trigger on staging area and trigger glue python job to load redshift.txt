@@ -1,0 +1,31 @@
+import json
+import boto3
+
+glue = boto3.client('glue')
+crawler_name = 'orders-staging-crawler'
+glue_python_job = 'orders_data_into_redshift'
+
+def lambda_handler(event, context):
+    
+    # glue crawler
+    
+    get_crawler_response = glue.get_crawler(Name = crawler_name)
+    print('The get crawler response is ', get_crawler_response)
+    print('The crawler state is ', get_crawler_response['Crawler']['State'])
+    
+    if get_crawler_response['Crawler']['State'] == 'READY':
+    
+        try:
+            
+            start_crawler_response = glue.start_crawler(Name = crawler_name)
+            print('The start crawler response is ', start_crawler_response)
+            
+        except Exception as e:
+            
+            print('Unable to start the crawler. The exception is ', e)
+    
+    else:
+        
+        print('The crawler ', crawler_name, ' is not in READY state')
+
+    

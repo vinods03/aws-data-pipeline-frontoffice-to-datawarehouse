@@ -1,0 +1,14 @@
+I tried to run the command "aws --version" from my command prompt (C:\Users\Vinod)
+I was getting the error "ModuleNotFoundError: No module named ‘awscli’".
+
+Upon running the command:
+python -m pip install awscli
+
+I was able to run the command "aws --version" successfully.
+I also tried running aws s3 ls and it listed down all my buckets.
+
+If aws s3 ls command does not work or it shows the buckets ina different region, we might have to configure the user by running the command:
+aws configure
+You will need the Access Key ID and Secret Access Key (from IAM -> Users) for this.
+
+Once verified in command prompt, Open terminal in Visual Studio Code editor and try out the same.

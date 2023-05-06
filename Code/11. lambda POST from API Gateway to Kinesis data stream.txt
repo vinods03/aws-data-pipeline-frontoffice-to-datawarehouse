@@ -1,0 +1,55 @@
+import json
+import boto3
+from uuid import uuid4
+from datetime import datetime
+
+kinesis = boto3.client('kinesis')
+stream_name = 'orders'
+
+def lambda_handler(event, context):
+    
+    print('The event is ', event)
+    
+    event_body = json.loads(event['body'])
+    print('The event_body is ', event_body)
+    
+    order_id = str(uuid4())
+    customer_id = event_body['customer_id']
+    seller_id = event_body['seller_id']
+    products = event_body['products']
+    order_purchase_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    order = {
+        'order_id': order_id,
+        'customer_id': customer_id,
+        'seller_id': seller_id,
+        'products': products,
+        'order_purchase_timestamp': order_purchase_timestamp
+    }
+    
+    print('The order is ', order)
+    
+    try:
+        
+        response = kinesis.put_record(StreamName = stream_name, Data = json.dumps(order).encode('utf-8'), PartitionKey = order['order_id'])
+        shard_id = response['ShardId']
+        sequence_number = response['SequenceNumber']
+        print('The order ', order, ' has been published successfully into the kinesis data stream ', stream_name, ' in shard ', shard_id, ' with sequence number ', sequence_number)
+        
+    except Exception as e:
+        
+        print('Unable to publish the order ', order, ' into the stream ', stream_name, '. The exception is ', e)
+    
+    return {
+        'statusCode': 200,
+        'headers': 
+            {
+                'Access-Control-Allow-Origin': '*'
+            },
+        'body': json.dumps('Order successfully booked !!!')
+    }
+    
+    
+    
+    
+    

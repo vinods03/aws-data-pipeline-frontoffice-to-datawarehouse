@@ -1,0 +1,30 @@
+import json
+import boto3
+
+dynamodb = boto3.resource('dynamodb')
+orders_tbl = dynamodb.Table('orders')
+
+def lambda_handler(event, context):
+    
+    print('The event is ', event)
+    
+    order_id = event['order_id']
+    print('The order_id is ', order_id)
+    
+    response = orders_tbl.get_item(
+           Key = {'order_id': order_id}
+        )
+    
+    print('The response is ', response)
+    
+    if 'Item' in response:
+        body = response['Item']
+    else:
+        body = 'Not a valid order_id'
+    
+    return {
+        'statusCode': 200,
+        'body': body
+    }
+    
+    

@@ -1,0 +1,13 @@
+Refer "Code" folder for the order generator and order publisher code.
+Order publisher code makes use of the order generator code to publish data into the kinesis data stream.
+There are 3 different flavors of the order publisher code -> 
+publish each record into the stream, publish each record with guaranteed ordering at the shard level and publish a batch of records.
+
+The commands used to invoke the different flavors of order publisher code is also provided.
+
+The lambda consumer code is also present in the "Code" folder.
+Same process is used to come up with the lambda consumer code. Print out the event. Loop through the records if needed. In each record, extract individual columns. 
+Build an item i.e. a row of columns.
+Build an array of items.
+Use batch writer to write into DynamoDB.
+Each item in DynamoDB will have different number of columns - based on the number of products in each order.

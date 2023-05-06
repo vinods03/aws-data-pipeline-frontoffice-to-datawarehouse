@@ -1,0 +1,29 @@
+aws kinesis register-stream-consumer --stream-arn arn:aws:kinesis:us-east-1:100163808729:stream/orders --consumer-name orders-consumer-1
+
+Output:
+
+{   
+    "Consumer": {
+        "ConsumerName": "orders-consumer-1",
+        "ConsumerARN": "arn:aws:kinesis:us-east-1:100163808729:stream/orders/consumer/orders-consumer-1:1679400300",
+        "ConsumerStatus": "CREATING",
+        "ConsumerCreationTimestamp": 1679400300.0
+    }
+}
+
+Delete the existing Kinesis trigger on the lambda consumer function.
+
+Add a new kinesis trigger. This time, you will be given the choice to select consumer name as well aprt from Kinesis data stream name. Choose the consumer you created above.
+
+This consumer can consume data at a rate of up to 2 MiB per second per shard. 
+This rate is unaffected by the total number of consumers that read from the same stream.
+You can register up to 20 consumers per stream and each consumer can consume 2MiB per second per shard.
+
+Suppose there is another application / system which wants to consume the data from the same kinesis data stream, again using a lambda.
+Create another consumer like the one created above.
+Add Stream + consumer as the trigger for the lambda.
+
+Now, both the lambda of application 1 and the lambda of application 2 can consume data at the rate of 2 MiB per second per shard.
+Without these enhanced fan-out consumers, the 2 MiB per second per shard would have been split between these 2 applications i.e. each would have consumed @ 1 MiB per second per shard.
+
+Note: A given consumer can only be registered with one stream at a time.

@@ -1,0 +1,18 @@
+Created a lambda function that will automatically trigger the Glue Crawler once data is available in S3 staging area.
+
+
+Some important aspects of this lambda function:
+
+This should have a trigger on the SQS queue created in the previous step.
+The timeout of the lamda function is set to 5 minutes
+The batch window on the SQS trigger set to 3 minutes and the batch size to 1000.
+The visiblity timeout on the SQS queue is set to 10 minutes (must be greater than 5+3 = 8)
+
+This 3 minutes batch window is essential to ensure the Glue crawler does not get triggered multiple times.
+In our use case, we had 42 records / files written in S3, resulting in 42 messages in the SQS queue.
+Since lambda waits for 3 minutes or 1000 messages, whichever is first, it was invoked only once for all the 42 messages, 5 minutes after the files were written into S3.
+If we had the batch window very small like, say 2-3 seconds, the lambda would have got invoked multiple times, as and when each file arrived - each time trying to start the glue spark job and resulting in lot of failures / unwanted processing. The batch window / batch size needs to be adjusted based on the volume of data we are expecting.
+Apart from this, in the lambda code also, we start the crawler only if it is not already in running state.
+
+Refer the "Code" folder for the lambda code that triggers glue crawler.
+

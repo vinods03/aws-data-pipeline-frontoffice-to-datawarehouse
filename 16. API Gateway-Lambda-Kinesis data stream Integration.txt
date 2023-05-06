@@ -1,0 +1,12 @@
+In Step 3, we have used Python mock Publisher to send records into the Kinesis data stream.
+In the real world, this is not how it works.
+There will be a front-end application which captures order details and publishes it into the Kinesis data stream.
+
+We are not going to build a front-end screen here but we will be simulating the rest of the processes as in real world.
+POSTMAN can be considered to be our front-end screen.
+This publishes the order details into API Gateway.
+API Gateway will invoke a Lambda function.
+The lambda function will publish the message into the Kinesis data stream.
+
+This flow is what we are going to see in the remaining sections:
+Front-end screen / POSTMAN ---> API Gateway ---> Lambda ----> Kinesis data stream

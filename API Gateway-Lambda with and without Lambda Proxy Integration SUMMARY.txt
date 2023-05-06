@@ -1,0 +1,61 @@
+1. When there is Lambda Proxy Integration, this is how you access different parts of the API Gateway request in Lambda:
+
+print('The event body is ', json.loads(event['body']))
+print('The event header is ', event['headers'])
+print('Path Parameters is ', event['pathParameters'])
+print('Query string parameters is ', event['queryStringParameters'])
+
+Also, if CORS is enabled, your lambda function must return the value for header Access-Control-Allow-Origin also:
+
+return {
+        'statusCode': 200,
+        'headers': {'Access-Control-Allow-Origin': '*'},
+        'body': json.dumps('Note successfully added !!')
+    }
+
+
+You cannot modify anything in the "Integration Request", "Integration Response" or "Method Response" modules here.
+
+
+2. When there is no Lambda Proxy Integration, in the "Integration Request" module use the "params" keyword to access headers, path parameters and query string parameters.
+Use the inputRoot. to access the request body.
+You can have a separate key like "input" below for the Request body details.
+
+#set($inputRoot = $input.path('$'))
+{
+  "order_id" : "$input.params('order_id')",
+  "input" : {
+    "customer_id" : "$inputRoot.customer_id",
+    "seller_id" : "$inputRoot.seller_id",
+    "products" : $inputRoot.products
+  }
+}
+
+In this case this is how you access different parts of the API Gateway request in Lambda:
+
+order_id = event['order_id']
+customer_id = event['input']['customer_id']
+seller_id = event['input']['seller_id']
+products = event['input']['products']
+
+
+If you choose not have any key for the Request body details, like below:
+
+#set($inputRoot = $input.path('$'))
+{
+  "order_id" : "$input.params('order_id')",
+  "customer_id" : "$inputRoot.customer_id",
+  "seller_id" : "$inputRoot.seller_id",
+  "products" : $inputRoot.products
+}
+
+This is how you will access different parts of the API Gateway request in Lambda:
+
+order_id = event['order_id']
+customer_id = event['customer_id']
+seller_id = event['seller_id']
+products = event['products']
+
+
+Here, there is no need for your lambda to return the value for header Access-Control-Allow-Origin.
+The "Method Response" module will have the header Access-Control-Allow-Origin and the "Integration Response" module will set the value (as '*' maybe) for this header.

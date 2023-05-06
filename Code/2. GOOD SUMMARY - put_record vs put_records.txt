@@ -1,0 +1,13 @@
+************************************************* kinesis.put_record *******************************************************
+order = make_order()
+
+kwargs = {'StreamName': stream_name, 'Data': json.dumps(order).encode('utf-8'), 'PartitionKey': order['seller_id']}
+response = kinesis.put_record(**kwargs)
+
+************************************************* kinesis.put_records *******************************************************
+orders = []
+order = make_order()
+
+kwargs = {'Data': json.dumps(order).encode('utf-8'), 'PartitionKey': order['order_id']}
+orders.append(kwargs)
+response = kinesis.put_records(StreamName = stream_name, Records = orders)

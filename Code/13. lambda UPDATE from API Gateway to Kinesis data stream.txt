@@ -1,0 +1,63 @@
+import json
+import boto3
+from datetime import datetime
+
+dynamodb = boto3.resource('dynamodb')
+orders_tbl = dynamodb.Table('orders')
+
+kinesis = boto3.client('kinesis')
+stream_name = 'orders'
+
+def lambda_handler(event, context):
+    
+    print('The event is ', event)
+    
+    order_id = event['order_id']
+    print('The order_id is ', order_id)
+    
+    get_response = orders_tbl.get_item(
+           Key = {'order_id': order_id}
+        )
+    
+    print('The get response is ', get_response)
+    
+    if 'Item' in get_response:
+        # kinesis code
+        
+        customer_id = event['input']['customer_id']
+        seller_id = event['input']['seller_id']
+        products = event['input']['products']
+        order_purchase_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        order = {
+            'order_id': order_id,
+            'customer_id': customer_id,
+            'seller_id': seller_id,
+            'products': products,
+            'order_purchase_timestamp': order_purchase_timestamp
+        }
+        
+        print('The order is ', order)
+        
+        try:
+            
+            put_response = kinesis.put_record(StreamName = stream_name, Data = json.dumps(order).encode('utf-8'), PartitionKey = order['order_id'])
+            shard_id = put_response['ShardId']
+            sequence_number = put_response['SequenceNumber']
+            print('The updated order ', order, ' has been published successfully into the kinesis data stream ', stream_name, ' in shard ', shard_id, ' with sequence number ', sequence_number)
+            body = 'Order updated successfully'
+            
+        except Exception as e:
+            
+            print('Unable to publish the updated order ', order)
+            body = 'Unable to update order'
+            
+    else:
+        
+        body = 'Not a valid order_id that can be updated'
+    
+    return {
+        'statusCode': 200,
+        'body': body
+    }
+    

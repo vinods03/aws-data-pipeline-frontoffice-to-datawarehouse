@@ -1,0 +1,5 @@
+We execute a copy command that moves all the files from the S3 staging area into Redshift staging area.
+Then we call a stored procedure that will perform lookup on dimension tables, enrich the data before loading into the final Redshift table.
+
+We perform a direct insert and no updates / deletes because we want the warehouse to store all information related to every order.
+Use the timestamp field to retrieve the latest record of an order if that is what is needed.

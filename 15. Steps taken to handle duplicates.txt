@@ -1,0 +1,6 @@
+Using Job bookmaark in the Glue Spark ETL jobs that move data from S3 landing area into S3 staging area and from S3 staging area into redshift staging area.
+
+Upsert logic in Redshift stored procedure that inserts new records, updates records with changed dimensions and does not act upon records with no changes.
+Refer 13. Redshift stored procedure - Upsert.txt for more details.
+
+

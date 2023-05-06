@@ -1,0 +1,36 @@
+-- In Redshift datawarehouse, there can be multiple records one order_id / product_code combination.
+-- Use the timestamp column to retrive the latest record for onee order_id / product_code combination.
+-- Enrichment is done here using the customers and sellers dimension tables and we log thee time the data was loaded into the warehouse.
+
+
+CREATE OR REPLACE PROCEDURE enriched_orders_sp ()
+AS $$
+BEGIN
+
+ RAISE INFO 'STARTING THE LOAD INTO ecommerce.orders';
+ 
+ INSERT INTO ecommerce.orders
+ select distinct order_id, customer_name, customer_address, seller_name, seller_address, product_code, product_name, product_price, product_qty, order_value, order_purchase_timestamp,
+ getdate()
+ from ecommerce_staging.orders a left outer join ecommerce.customers b
+ on a.customer_id = b.customer_id
+ left outer join ecommerce.sellers c
+ on a.seller_id = c.seller_id;
+
+ TRUNCATE TABLE ecommerce_staging.orders;
+
+ RAISE INFO 'COMPLETED THE LOAD INTO ecommerce.orders';
+
+EXCEPTION 
+ 
+ WHEN OTHERS THEN
+ RAISE EXCEPTION 'LOAD INTO ecommerce.orders failed';
+ 
+END;
+$$ LANGUAGE plpgsql;
+
+------------------------------------ How to invoke / test the above stored proc: -------------------------------------------
+
+call enriched_orders_sp();
+
+

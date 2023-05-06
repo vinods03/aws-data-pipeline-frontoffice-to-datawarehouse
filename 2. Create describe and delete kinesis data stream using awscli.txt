@@ -1,0 +1,3 @@
+C:\Users\Vinod> aws kinesis create-stream --stream-name orders --shard-count 2
+C:\Users\Vinod> aws kinesis describe-stream --stream-name orders
+C:\Users\Vinod> aws kinesis delete-stream --stream-name orders

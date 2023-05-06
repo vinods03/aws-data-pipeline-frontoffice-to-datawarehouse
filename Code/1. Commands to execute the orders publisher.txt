@@ -1,0 +1,3 @@
+python order_publisher.py orders --> orders is the name of the kinesis data stream into which you want to publish messages
+python order_publisher_with_guaranteed_ordering.py orders 
+python order_publisher_batch.py orders 20 --> 20 is the batch size

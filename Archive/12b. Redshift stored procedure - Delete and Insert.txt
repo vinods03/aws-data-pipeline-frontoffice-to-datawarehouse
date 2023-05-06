@@ -1,0 +1,50 @@
+-- Here we are assuming that only the customer or seller address can change for each order
+
+-- below approach uses the delete / insert methodology. Here also, there will be only one record for onee order_id / product_code combination.
+
+
+CREATE OR REPLACE PROCEDURE enriched_orders_sp ()
+AS $$
+BEGIN
+
+ RAISE INFO 'STARTING THE LOAD INTO ecommerce.orders';
+ 
+ INSERT INTO ecommerce.temp_orders
+ select order_id, customer_name, customer_address, seller_name, seller_address, product_code, product_name, product_price, product_qty, order_value, order_purchase_timestamp
+ from ecommerce_staging.orders a left outer join ecommerce.customers b
+ on a.customer_id = b.customer_id
+ left outer join ecommerce.sellers c
+ on a.seller_id = c.seller_id;
+
+ -- delete matching records
+
+ DELETE from ecommerce.orders 
+ using ecommerce.temp_orders 
+ where ecommerce.orders.order_id = ecommerce.temp_orders.order_id
+ and ecommerce.orders.product_code = ecommerce.temp_orders.product_code;
+
+ -- insert full - so new / existing records get reloaded into final table.
+
+ INSERT INTO ecommerce.orders
+ select *, get_date() as dwh_create_timestamp, NULL as dwh_update_timestamp
+ from ecommerce.temp_orders;
+
+ TRUNCATE TABLE ecommerce_staging.orders;
+
+ TRUNCATE TABLE ecommerce.temp_orders;
+
+ RAISE INFO 'COMPLETED THE LOAD INTO ecommerce.orders';
+
+EXCEPTION 
+ 
+ WHEN OTHERS THEN
+ RAISE EXCEPTION 'LOAD INTO ecommerce.orders failed';
+ 
+END;
+$$ LANGUAGE plpgsql;
+
+------------------------------------ How to invoke / test the above stored proc: -------------------------------------------
+
+call enriched_orders_sp();
+
+

@@ -1,0 +1,47 @@
+Created a lambda function that will automatically trigger the Glue Spark ETL job once data is available in S3 landing area.
+This spark ETL job will pick all the files available in the landing area for processing into staging area.
+
+Also, the lambda function will make entries in a DynamoDB audit table to log the files that were processed from the landing area.
+A DynamoDB stream is created on this audit table that triggers another lambda function which deletes the files logged in the audit table.
+Note that, this lambda function does not blindly delete files from landing area but only those that are logged in the audit table.
+This way, we make sure that we do not delete any file from the landing area, that is not processed.
+
+How do we make sure we log only those files in the audit table that were processed by the Glue Spark ETL job ?
+In the lambda function, the code to write into the audit table must follow the code to trigger the Glue Spark ETL job.
+Also, embedding the audit table insert code within the glue etl trigger code i.e. in the try block, after checking the status OF GLUE JOB is SUCCEEDED, did not work well.
+When there are multiple lambda invocations, the glue job would have started and completed in one of the invocations.
+In the other invocation, it might have gone into the exception block or the else block.
+But the "events" from SQS queue were distributed between the invocations. So only those events / filenames that went into the succesful invocation got logged in audit table.
+The events / filenames that went into the other invocation/s did not get logged. 
+Also, this resulted in partial cleanup of the landing area.
+So, instead of embedding audt related code in the try block, if we just keep this section separately following the entire glue job section, the successful invocation will log those events / filenames that it received and the failed invocation/s will log those events / filenames that it received even though the glue part went into the exception or else block.
+
+It looks like the failed invocation is logging those file names that it did not process but that is not the case here.
+The successful invocation has picked all files in the landing area at the time it got triggered - the glue job looks for the entire folder.
+It is only that the events / filenames are distributed across multiple invocations.
+
+Why are we deleting the files in landing area ?
+
+We dont want to expose the landing area to the business.
+More importantly, we have not enabled Job bookmark on the Spark ETL Glue job that processes the data from landing area to staging area.
+So we want to make sure we dont process the same set of data again and again. This will result in duplicates. 
+We could still handle duplicates in the Redshift layer using the upsert logic, but this is lot of unwanted processing.
+
+
+=================
+
+
+Some important aspects of this lambda function:
+
+This should have a trigger on the SQS queue created in the previous step.
+The timeout of the lamda function is set to 10 minutes
+The batch window on the SQS trigger set to 5 minutes and the batch size to 1000.
+The visiblity timeout on the SQS queue is set to 17 minutes (must be greater than 10+5 = 15 mins)
+
+This 5 minutes batch window is essential to ensure the Glue job does not get triggered multiple times.
+In our use case, we had 42 records / files written in S3, resulting in 42 messages in the SQS queue.
+Since lambda waits for 5 minutes or 1000 messages, whichever is first, it was invoked only once for all the 42 messages, 5 minutes after the files were written into S3.
+If we had the batch window very small like, say 2-3 seconds, the lambda would have got invoked multiple times, as and when each file arrived - each time trying to start the glue spark job and resulting in lot of failures / unwanted processing. The batch window / batch size needs to be adjusted based on the volume of data we are expecting.
+Apart from this, in the lambda code also, we start the job only if it is not already in running state.
+
+Refer the "Code" folder for the lambda code 
